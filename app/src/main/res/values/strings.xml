@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Тинькофф Новости</string>
+    <string name="error">Ошибка. Проверьте соединение</string>
+</resources>
