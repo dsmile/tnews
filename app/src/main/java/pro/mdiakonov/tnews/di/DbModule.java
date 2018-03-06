@@ -1,6 +1,6 @@
 package pro.mdiakonov.tnews.di;
 
-import android.content.Context;
+import android.app.Application;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
@@ -11,11 +11,13 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import pro.mdiakonov.tnews.repository.DbOpenHelper;
-import pro.mdiakonov.tnews.repository.entities.ContentEntry;
-import pro.mdiakonov.tnews.repository.entities.ContentEntrySQLiteTypeMapping;
-import pro.mdiakonov.tnews.repository.entities.TitleEntry;
-import pro.mdiakonov.tnews.repository.entities.TitleEntrySQLiteTypeMapping;
+import pro.mdiakonov.tnews.model.DbOpenHelper;
+import pro.mdiakonov.tnews.model.DiskRepository;
+import pro.mdiakonov.tnews.model.entities.ContentEntry;
+import pro.mdiakonov.tnews.model.entities.ContentEntrySQLiteTypeMapping;
+import pro.mdiakonov.tnews.model.entities.TitleEntry;
+import pro.mdiakonov.tnews.model.entities.TitleEntrySQLiteTypeMapping;
+
 
 @Module
 public class DbModule {
@@ -33,7 +35,14 @@ public class DbModule {
     @Provides
     @NonNull
     @Singleton
-    public SQLiteOpenHelper provideSQLiteOpenHelper(@NonNull Context context) {
-        return new DbOpenHelper(context);
+    public SQLiteOpenHelper provideSQLiteOpenHelper(@NonNull Application application) {
+        return new DbOpenHelper(application);
+    }
+
+    @Provides
+    @NonNull
+    @Singleton
+    public DiskRepository provideDiskRepository(@NonNull StorIOSQLite storIOSQLite) {
+        return new DiskRepository(storIOSQLite);
     }
 }

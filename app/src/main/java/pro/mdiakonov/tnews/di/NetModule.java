@@ -1,8 +1,5 @@
 package pro.mdiakonov.tnews.di;
 
-import android.app.Application;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -17,16 +14,17 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import pro.mdiakonov.tnews.BuildConfig;
 import pro.mdiakonov.tnews.api.NewsApi;
 import pro.mdiakonov.tnews.api.UnwrapConverterFactory;
+import pro.mdiakonov.tnews.model.NetworkRepository;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static pro.mdiakonov.tnews.Constants.BASE_URL;
+import static pro.mdiakonov.tnews.Constants.CONNECT_TIMEOUT_SEC;
+import static pro.mdiakonov.tnews.Constants.READ_WRITE_TIMEOUT_SEC;
+
 @Module
 public class NetModule {
-    private static final long CONNECT_TIMEOUT_SEC = 30;
-    private static final long READ_WRITE_TIMEOUT_SEC = 20;
-    private static final String BASE_URL = "https://api.tinkoff.ru/v1/";
-
     @Provides
     @NonNull
     @Singleton
@@ -49,7 +47,7 @@ public class NetModule {
                 .connectTimeout(CONNECT_TIMEOUT_SEC, TimeUnit.SECONDS)
                 .readTimeout(READ_WRITE_TIMEOUT_SEC, TimeUnit.SECONDS)
                 .writeTimeout(READ_WRITE_TIMEOUT_SEC, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(false);
+                .retryOnConnectionFailure(true);
         if (BuildConfig.DEBUG) builder.addInterceptor(loggingInterceptor);
         return builder.build();
     }
@@ -65,5 +63,12 @@ public class NetModule {
                 .addConverterFactory(new UnwrapConverterFactory(GsonConverterFactory.create()))
                 .build();
         return retrofit.create(NewsApi.class);
+    }
+
+    @Provides
+    @NonNull
+    @Singleton
+    public NetworkRepository providesNetworkRepository(NewsApi newsApi) {
+        return new NetworkRepository(newsApi);
     }
 }

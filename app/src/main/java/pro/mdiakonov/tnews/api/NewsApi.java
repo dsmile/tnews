@@ -3,6 +3,7 @@ package pro.mdiakonov.tnews.api;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import pro.mdiakonov.tnews.api.pojo.Title;
 import pro.mdiakonov.tnews.api.pojo.Content;
 import retrofit2.http.GET;
@@ -13,5 +14,5 @@ public interface NewsApi {
     Observable<List<Title>> getTitles(@Query("first") long first, @Query("last") long last);
 
     @GET("news_content")
-    Observable<Content> getContent(@Query("id") long id);
+    Single<Content> getContent(@Query("id") String id);
 }

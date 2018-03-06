@@ -7,5 +7,13 @@ public class Content {
     Title title;
     // html formatted
     @SerializedName("content")
-    public String content;
+    String content;
+
+    public Title getTitle() {
+        return title;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }

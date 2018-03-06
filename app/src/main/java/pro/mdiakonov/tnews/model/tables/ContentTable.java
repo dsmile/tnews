@@ -1,11 +1,11 @@
-package pro.mdiakonov.tnews.repository.tables;
+package pro.mdiakonov.tnews.model.tables;
 
 import android.support.annotation.NonNull;
 
-public class TitleTable {
+public class ContentTable {
 
     @NonNull
-    public static final String TABLE = "titles";
+    public static final String TABLE = "content";
 
     @NonNull
     public static final String COLUMN_ID = "_id";
@@ -14,18 +14,15 @@ public class TitleTable {
     public static final String COLUMN_NEWS_ID = "news_id";
 
     @NonNull
-    public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_CONTENT = "content";
 
-    @NonNull
-    public static final String COLUMN_PUBLICATION_DATE = "publication_date";
 
     public static final String COLUMN_ID_WITH_TABLE_PREFIX = TABLE + "." + COLUMN_ID;
     public static final String COLUMN_NEWS_ID_WITH_TABLE_PREFIX = TABLE + "." + COLUMN_NEWS_ID;
-    public static final String COLUMN_NAME_WITH_TABLE_PREFIX = TABLE + "." + COLUMN_NAME;
-    public static final String COLUMN_PUBLICATION_DATE_WITH_TABLE_PREFIX = TABLE + "." + COLUMN_PUBLICATION_DATE;
+    public static final String COLUMN_CONTENT_WITH_TABLE_PREFIX = TABLE + "." + COLUMN_CONTENT;
 
     // This is just class with Meta Data, we don't need instances
-    private TitleTable() {
+    private ContentTable() {
         throw new IllegalStateException("No instances please");
     }
 
@@ -34,8 +31,7 @@ public class TitleTable {
         return "CREATE TABLE " + TABLE + "("
                 + COLUMN_ID + " INTEGER NOT NULL PRIMARY KEY, "
                 + COLUMN_NEWS_ID + " TEXT NOT NULL, "
-                + COLUMN_NAME + " TEXT NOT NULL, "
-                + COLUMN_PUBLICATION_DATE + " INTEGER NOT NULL"
+                + COLUMN_CONTENT + " TEXT NOT NULL"
                 + ");";
     }
 }

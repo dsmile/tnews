@@ -1,12 +1,12 @@
-package pro.mdiakonov.tnews.repository;
+package pro.mdiakonov.tnews.model;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 
-import pro.mdiakonov.tnews.repository.tables.ContentTable;
-import pro.mdiakonov.tnews.repository.tables.TitleTable;
+import pro.mdiakonov.tnews.model.tables.ContentTable;
+import pro.mdiakonov.tnews.model.tables.TitleTable;
 
 public class DbOpenHelper extends SQLiteOpenHelper {
 

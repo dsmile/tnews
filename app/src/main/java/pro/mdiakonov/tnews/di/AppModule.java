@@ -27,11 +27,4 @@ public class AppModule {
     Application providesApplication() {
         return mApplication;
     }
-
-/*
-    @Provides
-    @NonNull
-    public ObservableUsersCache provideObservableUsersCache(Application context, StorIOSQLite storIOSQLite) {
-        return new ObservableUsersCache(context, storIOSQLite);
-    }*/
 }

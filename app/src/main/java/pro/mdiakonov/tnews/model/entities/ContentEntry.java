@@ -1,11 +1,11 @@
-package pro.mdiakonov.tnews.repository.entities;
+package pro.mdiakonov.tnews.model.entities;
 
 import android.support.annotation.Nullable;
 
 import com.pushtorefresh.storio3.sqlite.annotations.StorIOSQLiteColumn;
 import com.pushtorefresh.storio3.sqlite.annotations.StorIOSQLiteType;
 
-import pro.mdiakonov.tnews.repository.tables.ContentTable;
+import pro.mdiakonov.tnews.model.tables.ContentTable;
 
 @StorIOSQLiteType(table = ContentTable.TABLE)
 public class ContentEntry {

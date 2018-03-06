@@ -3,82 +3,105 @@ package pro.mdiakonov.tnews.presenter;
 import android.util.Log;
 
 import com.arellomobile.mvp.InjectViewState;
-import com.arellomobile.mvp.MvpPresenter;
 
-import java.security.Policy;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableSingleObserver;
 import io.reactivex.schedulers.Schedulers;
-import pro.mdiakonov.tnews.Constants;
 import pro.mdiakonov.tnews.DiApplication;
-import pro.mdiakonov.tnews.api.NewsApi;
+import pro.mdiakonov.tnews.R;
+import pro.mdiakonov.tnews.api.pojo.Title;
+import pro.mdiakonov.tnews.model.NetworkErrorCallback;
+import pro.mdiakonov.tnews.model.TitleRepository;
 import pro.mdiakonov.tnews.view.NewsListView;
 
 @InjectViewState
-public class NewsListPresenter extends BasePresenter<NewsListView> {
-    @Inject
-    NewsApi mNewsApi;
+public class NewsListPresenter extends BasePresenter<NewsListView> implements NetworkErrorCallback {
+    private static final String LOG_TAG = NewsListPresenter.class.getSimpleName();
 
-    private int mCurrentPage;
-    private Policy mNewsListRepository;
+    @Inject
+    TitleRepository mTitlesRepository;
+
+    private int mCurrentPage = -1;
 
     public NewsListPresenter() {
         DiApplication.getComponent().inject(this);
     }
 
+    @Override
+    protected void onFirstViewAttach() {
+        super.onFirstViewAttach();
+
+        onRefresh();
+    }
+
     public void onLoadNextPage() {
+        Log.d(LOG_TAG, "Next page: " + mCurrentPage);
         mCurrentPage++;
         getViewState().setRefreshing(true);
         getPage();
     }
 
     public void onRefresh() {
+        Log.d(LOG_TAG, "Refresh");
         mCurrentPage = 0;
         getViewState().setRefreshing(true);
-        mNewsListRepository.refresh();
+        mTitlesRepository.clearCache();
         getPage();
     }
 
     private void getPage() {
-
-
-/*        unsubscribeOnDestroy(mNewsApi.getTitles(first, last)
+        Log.d(LOG_TAG, "Page start: " + mCurrentPage);
+        Disposable disposable = mTitlesRepository.getTitles(mCurrentPage, this)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribeWith(products -> {
-                    getViewState().setRefreshing(false);
-                        getViewState().refreshPageItems(products.getProducts());
-                        if (products.getNumberPages() <= products.getCurrentPage()) {
-                            getViewState().stopPagination();
-                        }
-                        mCurrentPage = products.getCurrentPage();
-                    }, e -> {
+                .subscribeWith(new DisposableSingleObserver<List<Title>>() {
+                    @Override
+                    public void onSuccess(List<Title> titles) {
                         getViewState().setRefreshing(false);
-                        getViewState().showError(R.string.error);
-                        if (mCurrentPage > 0) {
-                            mCurrentPage--;
-                        }
+                        Log.d(LOG_TAG, "Titles: " + titles.size());
+                        getViewState().refreshPageItems(titles);
+
+/*                      todo Determine end of the list
+                        if (products.getNumberPages() <= products.getCurrentPage()) {
+                        getViewState().stopPagination();
+                    }*/
+                        Log.d(LOG_TAG, "Page end: " + mCurrentPage);
                     }
-                ));*/
 
-        mNewsApi.getContent(10024)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(data -> {
-                    Log.d("HEH", data.content);
+                    @Override
+                    public void onError(Throwable e) {
+                        // todo parse error
+                        Log.e(LOG_TAG, "error parsing", e);
+                    }
                 });
 
-        mNewsApi.getTitles(0, 1)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(data -> {
-                    Log.d("HEH", data.get(0).name);
-                });
+        unsubscribeOnDestroy(disposable);
     }
 
-    public void onErrorCancel() {
-        //getViewState().hideError();
+    public void onShowDetails(String newsId) {
+        getViewState().showDetails(newsId);
+    }
+
+    @Override
+    public void onNetworkError() {
+        Log.d(LOG_TAG, "onNetworkError");
+        getViewState().setRefreshing(false);
+        getViewState().showError(R.string.error);
+        if (mCurrentPage > -1) {
+            mCurrentPage--;
+        }
+    }
+
+    public void onRetryLoad() {
+        if (mCurrentPage > -1) {
+            onLoadNextPage();
+        } else {
+            onRefresh();
+        }
     }
 }

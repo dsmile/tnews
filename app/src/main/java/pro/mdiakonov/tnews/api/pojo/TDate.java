@@ -9,4 +9,8 @@ public class TDate {
     public TDate(long milliseconds) {
         this.milliseconds = milliseconds;
     }
+
+    public long getMilliseconds() {
+        return milliseconds;
+    }
 }

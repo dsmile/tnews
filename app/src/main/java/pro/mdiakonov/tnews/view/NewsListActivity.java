@@ -1,34 +1,27 @@
 package pro.mdiakonov.tnews.view;
 
-import android.content.Intent;
-import android.provider.SyncStateContract;
+import android.os.Parcelable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.widget.Toast;
 
 import com.arellomobile.mvp.presenter.InjectPresenter;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import pro.mdiakonov.tnews.Constants;
-import pro.mdiakonov.tnews.DiApplication;
 import pro.mdiakonov.tnews.R;
-import pro.mdiakonov.tnews.api.NewsApi;
 import pro.mdiakonov.tnews.api.pojo.Title;
 import pro.mdiakonov.tnews.presenter.NewsListPresenter;
+import pro.mdiakonov.tnews.view.adapter.NetworkState;
+import pro.mdiakonov.tnews.view.adapter.NewsFooterListAdapter;
+import pro.mdiakonov.tnews.view.adapter.RetryCallback;
+import pro.mdiakonov.tnews.view.adapter.ShowDetailsCallback;
 
-public class NewsListActivity extends BaseActivity implements NewsListView {
-
-    private static final String NEWS_ID_EXTRA = "NEWS_ID_EXTRA";
-
-    @Inject
-    NewsApi newsApi;
+public class NewsListActivity extends BaseActivity implements NewsListView, ShowDetailsCallback, RetryCallback {
 
     @InjectPresenter
     NewsListPresenter mNewsListPresenter;
@@ -36,9 +29,11 @@ public class NewsListActivity extends BaseActivity implements NewsListView {
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView.LayoutManager layoutManager;
+    private NewsFooterListAdapter newsListAdapter;
 
-    // todo
+    // todo Determine end of the list
     private boolean mEndOfList;
+    private boolean isRefreshing;
 
     private RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -47,7 +42,7 @@ public class NewsListActivity extends BaseActivity implements NewsListView {
             int totalItemCount = recyclerView.getLayoutManager().getItemCount();
             int firstVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
 
-            if (!mSwipeRefreshLayout.isRefreshing() && !mEndOfList) {
+            if (!isRefreshing && !mEndOfList) {
                 if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - Constants.PAGINATION_MARGIN
                         && firstVisibleItemPosition >= 0
                         && totalItemCount >= Constants.PAGE_SIZE) {
@@ -60,16 +55,18 @@ public class NewsListActivity extends BaseActivity implements NewsListView {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DiApplication.getComponent().inject(this);
         setContentView(R.layout.activity_list);
 
         mEndOfList = false;
+        isRefreshing = false;
 
         mRecyclerView = findViewById(R.id.list);
         mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
 
         layoutManager = new LinearLayoutManager(this);
+        newsListAdapter = new NewsFooterListAdapter(this, this);
         mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(newsListAdapter);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mRecyclerView.addOnScrollListener(recyclerViewOnScrollListener);
@@ -79,36 +76,47 @@ public class NewsListActivity extends BaseActivity implements NewsListView {
     }
 
     @Override
-    public void showError(int messageResId) {
-        Toast.makeText(this, getString(messageResId), Toast.LENGTH_LONG).show();
+    public void onShowDetails(String newsId) {
+        mNewsListPresenter.onShowDetails(newsId);
     }
 
     @Override
-    public void showDetails(long newsId) {
-        final Intent intent = new Intent(this, DetailsActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(NEWS_ID_EXTRA, newsId);
+    public void showError(int messageResId) {
+        newsListAdapter.setNetworkState(NetworkState.FAIL);
+    }
 
-        startActivity(intent);
+    @Override
+    public void showDetails(String newsId) {
+        DetailsActivity.launch(newsId, this);
     }
 
     @Override
     public void setRefreshing(boolean isRefreshing) {
-        // todo
-    }
-
-    @Override
-    public void setEndOfList(boolean isEndOfList) {
-
+        if (this.isRefreshing != isRefreshing) {
+            if (!isRefreshing) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            } else {
+                newsListAdapter.setNetworkState(NetworkState.LOADING);
+            }
+            this.isRefreshing = isRefreshing;
+        }
     }
 
     @Override
     public void refreshPageItems(List<Title> items) {
-
+        Parcelable recyclerViewState = mRecyclerView.getLayoutManager().onSaveInstanceState();
+        newsListAdapter.setItems(items);
+        mRecyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
     }
 
     @Override
     public void stopPagination() {
+        mEndOfList = true;
+        newsListAdapter.setNetworkState(NetworkState.NO_MORE);
+    }
 
+    @Override
+    public void onRetryLoad() {
+        mNewsListPresenter.onRetryLoad();
     }
 }

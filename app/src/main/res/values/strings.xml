@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Тинькофф Новости</string>
     <string name="error">Ошибка. Проверьте соединение</string>
+    <string name="loading">Ошибка загрузки</string>
+    <string name="connection_error">Проверьте подключение</string>
+    <string name="retry">Повторить</string>
 </resources>

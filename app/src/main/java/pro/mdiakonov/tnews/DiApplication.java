@@ -7,9 +7,11 @@ import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
 import pro.mdiakonov.tnews.di.ActivityComponent;
+import pro.mdiakonov.tnews.di.AppModule;
 import pro.mdiakonov.tnews.di.DaggerActivityComponent;
 import pro.mdiakonov.tnews.di.DbModule;
 import pro.mdiakonov.tnews.di.NetModule;
+import pro.mdiakonov.tnews.di.RepoModule;
 
 public class DiApplication extends Application {
     private static ActivityComponent mComponent;
@@ -32,9 +34,10 @@ public class DiApplication extends Application {
         refWatcher = LeakCanary.install(this);
 
         mComponent = DaggerActivityComponent.builder()
-        //        .appModule(new AppModule(this))
+                .appModule(new AppModule(this))
                 .netModule(new NetModule())
                 .dbModule(new DbModule())
+                .repoModule(new RepoModule())
                 .build();
     }
 
